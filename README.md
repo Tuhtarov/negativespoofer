@@ -11,7 +11,7 @@
 
 ## Useful links
 To make this repo more readable, I made different pages for different topics.
-- [How to compile (Linux)](pages/LINUX.md)
+- [How to compile (Linux/deb)](pages/LINUX.md)
 - [How to compile (Windows)](pages/WINDOWS.md)
 - [How to use](pages/USE.md)
 - [Reporting issue](pages/BUGS.md)

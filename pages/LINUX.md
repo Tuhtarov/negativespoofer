@@ -3,23 +3,23 @@ Compiling this EFI application is incredibly simple. All you need is a working r
 
 First download and install gcc, gnu-efi.
 ```
-sudo pacman -S gcc gnu-efi-libs cmake git
+sudo apt install gnu-efi build-essential cmake git
 ```
 This should install all required packages that you will need to build.
 
 Clone this repo.
 ```
-git clone https://github.com/SamuelTulach/negativespoofer
+git clone https://github.com/Tuhtarov/negativespoofer
 ```
 
-Change directory to the repo root folder.
+Rename repo folder.
 ```
-cd hwid
+mv ./negativespoofer ./hwid
 ```
 
 Build the application.
 ```
-./scripts/build.sh
+cd hwid && ./scripts/build.sh
 ```
 
 Now you should see hwid.efi in the build folder. Congrats!

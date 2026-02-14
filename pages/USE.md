@@ -1,5 +1,5 @@
 # How to use
-First, obtain a copy of hwid.efi ([compile it](pages/LINUX.md) or [download it from release section](https://github.com/SamuelTulach/negativespoofer/releases)) and a copy of [EDK2 efi shell](https://github.com/tianocore/edk2/releases). Now follow these steps:
+First, obtain a copy of hwid.efi [compile it](pages/LINUX.md) and a copy of [EDK2 efi shell](https://github.com/tianocore/edk2/releases/download/edk2-stable202002/ShellBinPkg.zip). Now follow these steps:
 
 1. Extract downloaded efi shell and rename file Shell.efi (should be in folder UefiShell/X64) to bootx64.efi
 2. Format some USB drive to FAT32
