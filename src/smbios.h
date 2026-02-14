@@ -58,4 +58,17 @@ UINTN SpaceLength(const char* text, UINTN maxLength);
 EFI_STATUS UpdateSmbiosString(OUT SMBIOS_STRUCTURE_POINTER SmbiosTableN, SMBIOS_STRING *Field, IN CONST CHAR8 *Buffer);
 void EditString(SMBIOS_STRUCTURE_POINTER table, SMBIOS_STRING* field, const CHAR8* buffer);
 
+// Простое сравнение строк
+static inline int SimpleStrnCmp(const CHAR8 *s1, const CHAR8 *s2, UINTN n)
+{
+    while (n && *s1 && (*s1 == *s2))
+    {
+        s1++;
+        s2++;
+        n--;
+    }
+    if (n == 0) return 0;
+    return *(unsigned char *)s1 - *(unsigned char *)s2;
+}
+
 #endif
