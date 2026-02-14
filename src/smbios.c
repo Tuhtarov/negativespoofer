@@ -73,8 +73,8 @@ EFI_STATUS CreateWritableSmbiosCopy(SMBIOS3_STRUCTURE_TABLE *SmbiosPoint)
     // Копируем данные
     CopyMem(g_SmbiosCopy, (VOID *)((UINTN)SmbiosPoint->TableAddress), g_SmbiosSize);
     
-    Print(L"[INFO] Created writable SMBIOS copy at 0x%p\n", g_SmbiosCopy);
-    Print(L"[INFO] Original SMBIOS at 0x%p\n", SmbiosPoint->TableAddress);
+    Print(L"[INFO] Created writable SMBIOS copy at 0x%lx\n", (UINT64)(UINTN)g_SmbiosCopy);
+    Print(L"[INFO] Original SMBIOS at 0x%lx\n", (UINT64)(UINTN)SmbiosPoint->TableAddress);
     
     return EFI_SUCCESS;
 }
@@ -83,7 +83,7 @@ EFI_STATUS CreateWritableSmbiosCopy(SMBIOS3_STRUCTURE_TABLE *SmbiosPoint)
 EFI_STATUS UpdateSmbiosEntryPoint(SMBIOS3_STRUCTURE_TABLE *SmbiosPoint)
 {
     Print(L"[INFO] Updating SMBIOS Entry Point...\n");
-    Print(L"[INFO] Old table address: 0x%p\n", SmbiosPoint->TableAddress);
+    Print(L"[INFO] Old table address: 0x%lx\n", (UINT64)(UINTN)SmbiosPoint->TableAddress);
     
     // Обновляем адрес таблицы
     SmbiosPoint->TableAddress = (EFI_PHYSICAL_ADDRESS)(UINTN)g_SmbiosCopy;
@@ -91,7 +91,7 @@ EFI_STATUS UpdateSmbiosEntryPoint(SMBIOS3_STRUCTURE_TABLE *SmbiosPoint)
     // Обновляем максимальный размер
     SmbiosPoint->TableMaximumSize = (UINT32)g_SmbiosSize;
     
-    Print(L"[INFO] New table address: 0x%p\n", SmbiosPoint->TableAddress);
+    Print(L"[INFO] New table address: 0x%lx\n", (UINT64)(UINTN)SmbiosPoint->TableAddress);
     
     return EFI_SUCCESS;
 }
@@ -190,9 +190,8 @@ EFI_STATUS UpdateSmbiosString(OUT SMBIOS_STRUCTURE_POINTER SmbiosTableN, SMBIOS_
     BLength = iStrLen(Buffer, MAX_OEM_STRING);
 
     Print(L"[DEBUG] Table type %d field %d\n", SmbiosTableN.Hdr->Type, *Field);
-    Print(L"[DEBUG] String at: 0x%p\n", AString);
+    Print(L"[DEBUG] String at: 0x%lx\n", (UINT64)(UINTN)AString);
     Print(L"[DEBUG] Old: '%a' (%d bytes)\n", AString, ALength);
-    Print(L"[DEBUG] New: '%a' (%d bytes)\n", Buffer, BLength);
 
     // Проверка: находимся ли мы в копии памяти?
     if (g_SmbiosCopy != NULL)

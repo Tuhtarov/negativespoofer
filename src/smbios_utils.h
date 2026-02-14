@@ -41,7 +41,7 @@ EFI_STATUS UpdateSmbios3Checksum(SMBIOS3_STRUCTURE_TABLE *Entry)
         Entry->EntryPointLength
     );
     
-    Print(L"[INFO] Updated SMBIOS checksum: 0x%02x\n", Entry->EntryPointStructureChecksum);
+    Print(L"[INFO] Updated SMBIOS checksum: 0x%lx\n", (UINT64)(UINTN)Entry->EntryPointStructureChecksum);
     
     return EFI_SUCCESS;
 }
@@ -72,10 +72,10 @@ VOID DumpSmbiosEntryInfo(SMBIOS3_STRUCTURE_TABLE *Entry)
     Print(L"Major Version: %d\n", Entry->MajorVersion);
     Print(L"Minor Version: %d\n", Entry->MinorVersion);
     Print(L"Docrev: %d\n", Entry->DocRev);
-    Print(L"Entry Point Revision: 0x%02x\n", Entry->EntryPointRevision);
+    Print(L"Entry Point Revision: 0x%lx\n", (UINT64)(UINTN)Entry->EntryPointRevision);
     Print(L"Table Max Size: %d bytes\n", Entry->TableMaximumSize);
-    Print(L"Table Address: 0x%p\n", Entry->TableAddress);
-    Print(L"Checksum: 0x%02x ", Entry->EntryPointStructureChecksum);
+    Print(L"Table Address: 0x%lx\n", (UINT64)(UINTN)Entry->TableAddress);
+    Print(L"Checksum: 0x%lx ", (UINT64)(UINTN)Entry->EntryPointStructureChecksum);
     
     if (VerifySmbios3Checksum(Entry))
     {
@@ -133,9 +133,9 @@ VOID DumpAllSmbiosTables(SMBIOS3_STRUCTURE_TABLE *SmbiosPoint)
         Print(L"\nTable #%d:\n", TableCount);
         Print(L"  Type: %d\n", Current.Hdr->Type);
         Print(L"  Length: %d bytes\n", Current.Hdr->Length);
-        Print(L"  Handle: 0x%04x\n", Current.Hdr->Handle);
+        Print(L"  Handle: 0x%lx\n", (UINT64)(UINTN)Current.Hdr->Handle);
         Print(L"  Total Size: %d bytes\n", TableLen);
-        Print(L"  Address: 0x%p\n", Current.Raw);
+        Print(L"  Address: 0x%lx\n", (UINT64)(UINTN)Current.Raw);
         
         DumpSmbiosTableStrings(Current);
         
