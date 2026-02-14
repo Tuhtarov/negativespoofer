@@ -5,7 +5,7 @@
 
 void EditRandom(SMBIOS_STRUCTURE_POINTER table, SMBIOS_STRING* field) 
 {
-    char buffer[258];
+    CHAR8 buffer[258];
     RandomText(buffer, 257);
 
     if (field) 
@@ -14,7 +14,7 @@ void EditRandom(SMBIOS_STRUCTURE_POINTER table, SMBIOS_STRING* field)
     } 
 }
 
-void PatchType0(SMBIOS_STRUCTURE_TABLE* entry) 
+void PatchType0(SMBIOS3_STRUCTURE_TABLE* entry) 
 {
     SMBIOS_STRUCTURE_POINTER table = FindTableByType(entry, SMBIOS_TYPE_BIOS_INFORMATION, 0);
     Print(L"[WORK] Patching type0 table at 0x%08x...\n", table);
@@ -24,7 +24,7 @@ void PatchType0(SMBIOS_STRUCTURE_TABLE* entry)
         Print(L"[FAIL] Table is non existent\n");
         return;
     }
-
+    
     EditRandom(table, &table.Type0->Vendor);
     EditRandom(table, &table.Type0->BiosVersion);
     EditRandom(table, &table.Type0->BiosReleaseDate);
@@ -32,8 +32,8 @@ void PatchType0(SMBIOS_STRUCTURE_TABLE* entry)
     Print(L"[INFO] Patched type0 table\n");
 }
 
-void PatchType1(SMBIOS_STRUCTURE_TABLE* entry) 
-{
+void PatchType1(SMBIOS3_STRUCTURE_TABLE* entry) 
+{   
     SMBIOS_STRUCTURE_POINTER table = FindTableByType(entry, SMBIOS_TYPE_SYSTEM_INFORMATION, 0);
     Print(L"[WORK] Patching type1 table at 0x%08x...\n", table);
 
@@ -51,7 +51,7 @@ void PatchType1(SMBIOS_STRUCTURE_TABLE* entry)
     Print(L"[INFO] Patched type1 table\n");
 }
 
-void PatchType2(SMBIOS_STRUCTURE_TABLE* entry) 
+void PatchType2(SMBIOS3_STRUCTURE_TABLE* entry) 
 {
     SMBIOS_STRUCTURE_POINTER table = FindTableByType(entry, SMBIOS_TYPE_BASEBOARD_INFORMATION, 0);
     Print(L"[WORK] Patching type2 table at 0x%08x...\n", table);
@@ -70,7 +70,7 @@ void PatchType2(SMBIOS_STRUCTURE_TABLE* entry)
     Print(L"[INFO] Patched type2 table\n");
 }
 
-void PatchType3(SMBIOS_STRUCTURE_TABLE* entry) 
+void PatchType3(SMBIOS3_STRUCTURE_TABLE* entry) 
 {
     SMBIOS_STRUCTURE_POINTER table = FindTableByType(entry, SMBIOS_TYPE_SYSTEM_ENCLOSURE, 0);
     Print(L"[WORK] Patching type3 table at 0x%08x...\n", table);
@@ -89,7 +89,7 @@ void PatchType3(SMBIOS_STRUCTURE_TABLE* entry)
     Print(L"[INFO] Patched type3 table\n");
 }
 
-void PatchAll(SMBIOS_STRUCTURE_TABLE* entry) 
+void PatchAll(SMBIOS3_STRUCTURE_TABLE* entry) 
 {
     PatchType0(entry);
     PatchType1(entry);

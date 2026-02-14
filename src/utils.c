@@ -19,7 +19,7 @@ int RandomNumber(int l, int h)
     return num + l;
 }
 
-void RandomText(char* s, const int len) 
+void RandomText(CHAR8* s, const int len) 
 {
     for (int i = 0; i < len; i++) 
     {

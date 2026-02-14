@@ -8,7 +8,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
     InitializeLib(ImageHandle, SystemTable);
     
     Print(L"[WORK] Searching for SMBIOS table entry...\n");
-    SMBIOS_STRUCTURE_TABLE* smbiosEntry = FindEntry();
+    SMBIOS3_STRUCTURE_TABLE* smbiosEntry = FindEntry();
     if (!smbiosEntry) 
     {
         Print(L"[FAIL] Failed to locate SMBIOS table entry\n");

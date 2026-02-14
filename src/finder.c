@@ -3,13 +3,17 @@
 #include "smbios.h"
 #include "edk2/PiHob.h"
 #include "hob.h"
+#include <string.h> // для memcmp
 
-EFI_GUID SmbiosTableGuid = { 0xEB9D2D31, 0x2D88, 0x11D3, { 0x9A, 0x16, 0x00, 0x90, 0x27, 0x3F, 0xC1, 0x4D } };
+#define SMBIOS3_ANCHOR "_SM3_"
+#define SMBIOS3_ANCHOR_LENGTH 5
+
+// EFI_GUID SmbiosTableGuid = { 0xEB9D2D31, 0x2D88, 0x11D3, { 0x9A, 0x16, 0x00, 0x90, 0x27, 0x3F, 0xC1, 0x4D } };
 EFI_GUID Smbios3TableGuid = { 0xF2FD1544, 0x9794, 0x4A2C, { 0x99, 0x2E, 0xE5, 0xBB, 0xCF, 0x20, 0xE3, 0x94 } };
 
 #define GET_GUID_HOB_DATA(GuidHob) ((VOID*) (((UINT8*) &((GuidHob)->Name)) + sizeof (EFI_GUID)))
 
-int CheckEntry(SMBIOS_STRUCTURE_TABLE* entry) 
+int CheckEntry(SMBIOS3_STRUCTURE_TABLE* entry) 
 {
     if (!entry)
         return 0;
@@ -27,13 +31,16 @@ int CheckEntry(SMBIOS_STRUCTURE_TABLE* entry)
 
 void* FindBySignature()
 {
-    int signature = EFI_SIGNATURE_32('_','S','M','_');
-    
-    for (long offset = 0xf0000; offset < 0xfffff; offset += 0x10) 
+    for (uintptr_t offset = 0xF0000; offset < 0xFFFFF; offset += 0x10) 
     {
-        if (*(int*)(offset) == signature && CheckEntry((SMBIOS_STRUCTURE_TABLE*)offset)) 
+        // проверяем первые 5 байт на "_SM3_"
+        if (memcmp((void*)offset, SMBIOS3_ANCHOR, SMBIOS3_ANCHOR_LENGTH) == 0) 
         {
-            return (void*)offset;
+            // проверяем корректность Entry Point через checksum
+            if (CheckEntry((SMBIOS3_STRUCTURE_TABLE*)offset)) 
+            {
+                return (void*)offset;
+            }
         }
     }
 
@@ -45,16 +52,16 @@ void* FindByHob()
     EFI_PHYSICAL_ADDRESS* table;
     EFI_PEI_HOB_POINTERS guidHob;
 
-    guidHob.Raw = GetFirstGuidHob(&SmbiosTableGuid);
+    // guidHob.Raw = GetFirstGuidHob(&SmbiosTableGuid);
 
-    if (guidHob.Raw != 0) 
-    {
-        table = (EFI_PHYSICAL_ADDRESS*)GET_GUID_HOB_DATA(guidHob.Guid);
-        if (table != 0) 
-        {
-            return (void*)table;
-        }
-    }
+    // if (guidHob.Raw != 0) 
+    // {
+    //     table = (EFI_PHYSICAL_ADDRESS*)GET_GUID_HOB_DATA(guidHob.Guid);
+    //     if (table != 0) 
+    //     {
+    //         return (void*)table;
+    //     }
+    // }
 
     guidHob.Raw = GetFirstGuidHob(&Smbios3TableGuid);
 
@@ -73,30 +80,30 @@ void* FindByHob()
 void* FindByConfig() 
 {
     EFI_PHYSICAL_ADDRESS* table;
-    EFI_STATUS status = LibGetSystemConfigurationTable(&SmbiosTableGuid, (void**)&table);
-    if (status == EFI_SUCCESS)
-        return table;
+    // EFI_STATUS status = LibGetSystemConfigurationTable(&SmbiosTableGuid, (void**)&table);
+    // if (status == EFI_SUCCESS)
+    //     return table;
 
-    status = LibGetSystemConfigurationTable(&Smbios3TableGuid, (void**)&table);
+    EFI_STATUS status = LibGetSystemConfigurationTable(&Smbios3TableGuid, (void**)&table);
     if (status == EFI_SUCCESS)
         return table;
 
     return 0;
 }
 
-SMBIOS_STRUCTURE_TABLE* FindEntry() 
+SMBIOS3_STRUCTURE_TABLE* FindEntry() 
 {
-    SMBIOS_STRUCTURE_TABLE* address = FindBySignature();
-    if (address) 
-        return address;      
+    // SMBIOS3_STRUCTURE_TABLE* address = FindBySignature();
+    // if (address) 
+    //     return address;      
 
-    address = FindByConfig();
+    SMBIOS3_STRUCTURE_TABLE* address = FindByConfig();
     if (address) 
         return address;
 
-    address = FindByHob();
-    if (address) 
-        return address;
+    // SMBIOS3_STRUCTURE_TABLE* address = FindByHob();
+    // if (address) 
+    //     return address;
          
     return 0;
 }
