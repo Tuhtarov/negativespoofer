@@ -3,6 +3,7 @@
 #include "patch.h"
 #include "smbios.h"
 #include "smbios_utils.h"
+#include "utils.h"
 
 // Объявление функций из smbios.c
 extern UINT8 *g_SmbiosCopy;
@@ -107,8 +108,69 @@ VOID TestWriteMode(SMBIOS3_STRUCTURE_TABLE *smbiosEntry)
         Print(L"  Failed to create copy: %r\n", Status);
     }
 }
+UINT32 ReadSeedInput(void) 
+{
+    EFI_INPUT_KEY Key;
+    CHAR8 buffer[32] = {0};
+    int idx = 0;
+    
+    Print(L"\n");
+    Print(L"╔════════════════════════════════════════╗\n");
+    Print(L"║   SMBIOS v3 Patcher                    ║\n");
+    Print(L"╚════════════════════════════════════════╝\n");
+    Print(L"\n");
+    Print(L"[INFO] Enter seed number (0 or ENTER for random):\n> ");
+    
+    while (1) 
+    {
+        // Ждём нажатия
+        while (gST->ConIn->ReadKeyStroke(gST->ConIn, &Key) == EFI_NOT_READY)
+            ;
+        
+        if (Key.UnicodeChar == CHAR_CARRIAGE_RETURN)  // ENTER
+        {
+            break;
+        }
+        else if (Key.UnicodeChar >= L'0' && Key.UnicodeChar <= L'9')
+        {
+            if (idx < 31) 
+            {
+                buffer[idx++] = (CHAR8)Key.UnicodeChar;
+                Print(L"%c", Key.UnicodeChar);
+            }
+        }
+        else if (Key.UnicodeChar == CHAR_BACKSPACE)
+        {
+            if (idx > 0) 
+            {
+                idx--;
+                buffer[idx] = 0;
+                Print(L"\b \b");
+            }
+        }
+        // Игнорируем все остальные клавиши (включая спецклавиши с UnicodeChar == 0)
+    }
+    
+    buffer[idx] = 0;
+    Print(L"\n\n");
+    
+    // Конвертация строки в число
+    UINT32 seed = 0;
+    for (int i = 0; i < idx; i++) 
+    {
+        seed = seed * 10 + (UINT32)(buffer[i] - '0');
+    }
+    
+    if (idx == 0 || seed == 0) 
+    {
+        Print(L"[INFO] Using random seed\n");
+        return 0;
+    }
+    
+    Print(L"[INFO] Using seed: %d\n\n", seed);
+    return seed;
+}
 
-// Основная функция с выбором режима
 EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 {
     EFI_STATUS Status;
@@ -116,11 +178,19 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 
     InitializeLib(ImageHandle, SystemTable);
 
-    Print(L"\n");
-    Print(L"╔════════════════════════════════════════╗\n");
-    Print(L"║   SMBIOS v3 Patcher with Diagnostics   ║\n");
-    Print(L"╚════════════════════════════════════════╝\n");
-    Print(L"\n");
+    UINT32 seed = ReadSeedInput();
+    if (seed > 0) 
+    {
+        SetRandomSeed(seed);
+    }
+    else
+    {
+        // Инициализация по времени — реализуй в своём SetRandomSeed или здесь
+        EFI_TIME Time;
+        gRT->GetTime(&Time, NULL);
+        UINT32 timeSeed = (UINT32)Time.Second + Time.Minute * 60 + Time.Hour * 3600;
+        SetRandomSeed(timeSeed != 0 ? timeSeed : 1);
+    }
 
     Print(L"[WORK] Searching for SMBIOS table entry...\n");
     SMBIOS3_STRUCTURE_TABLE *smbiosEntry = FindEntry();
@@ -135,14 +205,13 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 
     Print(L"\n");
     Print(L"Select mode:\n");
-    Print(L"  [D] Diagnostic - Show detailed SMBIOS info\n");
-    Print(L"  [T] Test Write - Test memory write capabilities\n");
-    Print(L"  [P] Patch - Apply SMBIOS patches\n");
+    Print(L"  [D] Diagnostic\n");
+    Print(L"  [T] Test Write\n");
+    Print(L"  [P] Patch\n");
     Print(L"  [Q] Quit\n");
     Print(L"\nYour choice: ");
 
-    // Ждём нажатия клавиши
-    while (SystemTable->ConIn->ReadKeyStroke(SystemTable->ConIn, &Key) == EFI_NOT_READY)
+    while (gST->ConIn->ReadKeyStroke(gST->ConIn, &Key) == EFI_NOT_READY)
         ;
 
     Print(L"%c\n\n", Key.UnicodeChar);
@@ -185,6 +254,16 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 
         Print(L"\n[SUCCESS] All patches applied!\n");
         Print(L"[INFO] Modified tables at: 0x%lx\n", (UINT64)(UINTN)smbiosEntry->TableAddress);
+        
+        // Print seed for reuse
+        UINT32 usedSeed = GetRandomSeed();
+        Print(L"\n");
+        Print(L"╔════════════════════════════════════════╗\n");
+        Print(L"║                 COMPLETE               ║\n");
+        Print(L"╚════════════════════════════════════════╝\n");
+        Print(L"[INFO] To repeat this result, use seed: %d\n", usedSeed);
+        Print(L"[INFO] This seed will be requested at the next startup\n");
+        Print(L"\n");
         break;
 
     case L'Q':
@@ -199,7 +278,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 
     Print(L"\n");
     Print(L"Press any key to exit...\n");
-    while (SystemTable->ConIn->ReadKeyStroke(SystemTable->ConIn, &Key) == EFI_NOT_READY)
+    while (gST->ConIn->ReadKeyStroke(gST->ConIn, &Key) == EFI_NOT_READY)
         ;
 
     return EFI_SUCCESS;
